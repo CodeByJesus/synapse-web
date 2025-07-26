@@ -264,10 +264,12 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 **Jesus david martinez julio** - Desarrollador junior enfocado en backend y Data Scientist
 
-- 🌐 <a href="https://portafolio-jesusmartinez.netlify.app/" target="_blank" rel="noopener noreferrer">Portfolio</a>
-- 💼 <a href="https://www.linkedin.com/in/jesus-martinez-bb4596348/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-- 🐙 <a href="https://github.com/CodeByJesus" target="_blank" rel="noopener noreferrer">GitHub</a>
+- 🌐 [Portfolio](https://portafolio-jesusmartinez.netlify.app/)
+- 💼 [LinkedIn](https://www.linkedin.com/in/jesus-martinez-bb4596348/)
+- 🐙 [GitHub](https://github.com/CodeByJesus)
 - 📧 [Email](mailto:jd67941@gmail.com)
+
+> 💡 **Tip**: Usa **Ctrl+Click** (Windows/Linux) o **Cmd+Click** (Mac) en los enlaces para abrirlos en una nueva pestaña.
 
 ## 🙏 **Agradecimientos**
 
@@ -282,8 +284,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 Si tienes preguntas o necesitas ayuda:
 
 - 📧 **Email**: jesusdmartinezj03@gmail.com
-- 💬 **Issues**: <a href="https://github.com/CodeByJesus/synapse-web/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
-- 📖 **Documentación**: <a href="https://github.com/CodeByJesus/synapse-web/wiki" target="_blank" rel="noopener noreferrer">Wiki</a>
+- 💬 **Issues**: [GitHub Issues](https://github.com/CodeByJesus/synapse-web/issues)
+- 📖 **Documentación**: [Wiki](https://github.com/CodeByJesus/synapse-web/wiki)
 
 ---
 
