@@ -1,0 +1,421 @@
+{# Plantilla principal de la aplicación. Extiende de base.html #}
+{% extends "base.html" %}
+
+{% block title %}Synapse - Data Analysis{% endblock %}
+
+{% block content %}
+    <!-- Language Selector -->
+    <div class="language-selector-container">
+        <div class="language-selector">
+            <i class="fas fa-globe language-icon"></i>
+            <select id="language-select" class="language-select">
+                <option value="en" {% if language == 'en' %}selected{% endif %}>EN</option>
+                <option value="es" {% if language == 'es' %}selected{% endif %}>ES</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <div class="main-header">
+        <h1 class="main-title">
+            <i class="fas fa-brain"></i>
+            Synapse
+        </h1>
+        <p class="subtitle">{{ translations.ANALYZE_DATA }}</p>
+    </div>
+
+    <!-- File Upload Interface -->
+    <div class="upload-container">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-content">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3 class="upload-title">{{ translations.UPLOAD_YOUR_DATA_FILE }}</h3>
+                <p class="upload-description">{{ translations.DRAG_AND_DROP }}</p>
+                <div class="upload-formats">
+                    <span class="format-badge">CSV</span>
+                    <span class="format-badge">Excel</span>
+                </div>
+            </div>
+            <form method="post" enctype="multipart/form-data" id="uploadForm" style="display: none;">
+                {% csrf_token %}
+                <input type="file" name="datafile" accept=".csv,.xlsx,.xls" id="fileInput" required>
+            </form>
+        </div>
+        
+        <!-- File cleanup action -->
+        <div class="action-buttons">
+            <form method="post" class="cleanup-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup_files">
+                <button type="submit" class="cleanup-btn">
+                    <i class="fas fa-broom"></i>
+                    {{ translations.CLEAN_ALL_FILES }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Uploaded file information -->
+    {% if uploaded_file_url %}
+        <div class="file-info">
+            <div class="file-info-content">
+                <div class="file-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="file-details">
+                    <h4>{{ translations.FILE_UPLOADED }}</h4>
+                    <p>{{ filename }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Error display -->
+    {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <!-- Success messages -->
+    {% if mensaje %}
+        <div class="success-message {% if mensaje_temporal %}temporary-message{% endif %}" id="mensaje-exito">
+            <i class="fas fa-check-circle"></i>
+            {{ mensaje }}
+        </div>
+    {% endif %}
+    
+    <!-- Django system messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="success-message temporary-message" id="mensaje-django">
+                <i class="fas fa-check-circle"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Data analysis results -->
+    {% if summary %}
+        <div class="analysis-container">
+            <h2 class="section-title"><i class="fas fa-chart-bar"></i> {{ translations.DATASET_OVERVIEW }}</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ summary.rows }}</div>
+                    <div class="stat-label">{{ translations.ROWS }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ summary.columns }}</div>
+                    <div class="stat-label">{{ translations.COLUMNS }}</div>
+                </div>
+            </div>
+            
+            <div class="data-preview">
+                <h3>{{ translations.FIRST_ROWS }}</h3>
+                <div class="table-container">
+                    {{ summary.first_rows|safe }}
+                </div>
+                <h3>Last rows</h3>
+                <div class="table-container">
+                    {{ summary.last_rows|safe }}
+                </div>
+            </div>
+
+            <!-- Missing values analysis -->
+            <h3><i class="fas fa-search"></i> {{ translations.MISSING_VALUES_ANALYSIS }}</h3>
+            {% if missing_total > 0 %}
+                <div class="nan-info">
+                    <div class="nan-total">
+                        <span class="nan-number">{{ missing_total }}</span>
+                        <span class="nan-label">{{ translations.TOTAL_MISSING }} detected</span>
+                    </div>
+                    <div class="nan-details">
+                        {% for col, count in missing_by_column.items %}
+                            {% if count > 0 %}
+                                <div class="nan-item">
+                                    <span class="nan-column">{{ col }}</span>
+                                    <span class="nan-count">{{ count }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Detailed missing values information -->
+                {% if rows_with_missing %}
+                    <h4 style="margin-top: 20px; color: #e65100;">
+                        <i class="fas fa-clipboard-list"></i> {{ translations.EXAMPLES_INCOMPLETE }}:
+                    </h4>
+                    <div class="filas-nan-detalle">
+                        {% for row in rows_with_missing %}
+                            <div class="fila-nan-item">
+                                <div class="fila-nan-header">
+                                    <span class="fila-indice">Row {{ row.index|add:1 }}</span>
+                                    <span class="fila-columnas-faltantes">
+                                        Missing: {{ row.missing_columns|join:", " }}
+                                    </span>
+                                </div>
+                                <div class="fila-datos-disponibles">
+                                    <strong>Available data:</strong>
+                                    {% for col, valor in row.available_data.items %}
+                                        <span class="dato-disponible">{{ col }}: {{ valor }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <h4 style="margin-top: 20px; color: #2a4d69;">
+                    <i class="fas fa-tools"></i> {{ translations.CLEANING_OPTIONS }}:
+                </h4>
+                <div class="limpieza-opciones">
+                    <!-- Remove complete rows -->
+                    <form method="post" enctype="multipart/form-data" class="limpieza-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="eliminar_nan">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="limpieza-btn eliminar">
+                            <i class="fas fa-trash"></i>
+                            {{ translations.REMOVE_MISSING }}
+                        </button>
+                    </form>
+
+                    <!-- Fill with mean -->
+                    <form method="post" enctype="multipart/form-data" class="limpieza-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="imputar_promedio">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="limpieza-btn promedio">
+                            <i class="fas fa-calculator"></i>
+                            {{ translations.FILL_WITH_MEAN }}
+                        </button>
+                    </form>
+
+                    <!-- Fill with median -->
+                    <form method="post" enctype="multipart/form-data" class="limpieza-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="imputar_mediana">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="limpieza-btn mediana">
+                            <i class="fas fa-sort-numeric-down"></i>
+                            {{ translations.FILL_WITH_MEDIAN }}
+                        </button>
+                    </form>
+
+                    <!-- Fill with mode -->
+                    <form method="post" enctype="multipart/form-data" class="limpieza-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="imputar_moda">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="limpieza-btn moda">
+                            <i class="fas fa-star"></i>
+                            {{ translations.FILL_WITH_MODE }}
+                        </button>
+                    </form>
+
+                    <!-- Fill with zero -->
+                    <form method="post" enctype="multipart/form-data" class="limpieza-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="imputar_cero">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="limpieza-btn cero">
+                            <i class="fas fa-circle"></i>
+                            {{ translations.FILL_WITH_ZERO }}
+                        </button>
+                    </form>
+                </div>
+
+            {% else %}
+                <div class="no-nan">
+                    <i class="fas fa-check-circle"></i>
+                    {{ translations.TOTAL_MISSING }} detected
+                </div>
+            {% endif %}
+            
+            <!-- Action buttons - Always visible when file is loaded -->
+            {% if filename %}
+                <div class="acciones-seccion" style="margin-top: 20px; text-align: center;">
+                    <div class="acciones-grid">
+                        <!-- Revert changes -->
+                        <form method="post" enctype="multipart/form-data" class="accion-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="revertir_cambios">
+                            <input type="hidden" name="filename" value="{{ filename }}">
+                            <button type="submit" class="accion-btn revertir">
+                                <i class="fas fa-undo"></i>
+                                Revert
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Descriptive statistics for numeric columns -->
+            {% if numeric_stats %}
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> {{ translations.DESCRIPTIVE_STATISTICS_TITLE }}</h2>
+                <div class="stats-container">
+                    {% for col, stats in numeric_stats.items %}
+                        <div class="stat-section">
+                            <h4>{{ col }}</h4>
+                            <div class="stat-grid">
+                                <div class="stat-item">
+                                    <span class="stat-name">Mean</span>
+                                    <span class="stat-value">{{ stats.mean|floatformat:2 }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-name">Median</span>
+                                    <span class="stat-value">{{ stats.median|floatformat:2 }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-name">Std Dev</span>
+                                    <span class="stat-value">{{ stats.std|floatformat:2 }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-name">Min</span>
+                                    <span class="stat-value">{{ stats.min|floatformat:2 }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-name">Max</span>
+                                    <span class="stat-value">{{ stats.max|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Frequency counts for categorical columns -->
+            {% if categorical_freqs %}
+                <h2 class="section-title"><i class="fas fa-list"></i> {{ translations.CATEGORICAL_FREQUENCIES_TITLE }}</h2>
+                <div class="freq-container">
+                    {% for col, freqs in categorical_freqs.items %}
+                        <div class="freq-section">
+                            <h4>{{ col }}</h4>
+                            <div class="freq-list">
+                                {% for value, count in freqs.items %}
+                                    <div class="freq-item">
+                                        <span class="freq-value">{{ value }}</span>
+                                        <span class="freq-count">{{ count }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Interactive data visualization -->
+            <h2 class="section-title"><i class="fas fa-chart-pie"></i> {{ translations.DATA_VISUALIZATION }}</h2>
+            <div class="chart-controls">
+                <div class="control-group">
+                    <label for="tipo_grafico">{{ translations.CHART_TYPE }}:</label>
+                    <select id="tipo_grafico" class="chart-select">
+                        <option value="bar">Bar chart</option>
+                        <option value="line">Line chart</option>
+                        <option value="scatter">Scatter plot</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="columna_x">{{ translations.X_AXIS }}:</label>
+                    <select id="columna_x" class="chart-select">
+                        {% for col in summary.column_names %}
+                            <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="columna_y">{{ translations.Y_AXIS }}:</label>
+                    <select id="columna_y" class="chart-select">
+                        {% for col in summary.column_names %}
+                            <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button onclick="generateChart()" class="chart-btn">
+                    <i class="fas fa-chart-bar"></i>
+                    {{ translations.GENERATE_CHART }}
+                </button>
+            </div>
+            <div class="chart-container">
+                <canvas id="miGrafico"></canvas>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Final section - Export and follow -->
+    {% if summary %}
+        <div class="final-section">
+            <div class="final-content">
+                <!-- Separator -->
+                <div class="separator"></div>
+                
+                <!-- Export section -->
+                <div class="export-section">
+                    <h3 class="export-title"><i class="fas fa-download"></i> {{ translations.EXPORT_REPORT }}</h3>
+                    <p class="export-description">{{ translations.GENERATE_COMPREHENSIVE_REPORT }}</p>
+                    <form method="post" enctype="multipart/form-data" class="export-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="export_pdf">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <button type="submit" class="export-btn">
+                            <i class="fas fa-file-pdf"></i>
+                            {{ translations.DOWNLOAD_PDF }}
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Follow section -->
+                <div class="follow-section">
+                    <h3 class="follow-title"><i class="fas fa-user-code"></i> {{ translations.CONNECT }}</h3>
+                    <a href="https://github.com/CodeByJesus" target="_blank" class="github-card">
+                        <div class="github-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                        </div>
+                        <div class="github-info">
+                            <h4>{{ translations.GITHUB }}</h4>
+                            <p>github.com/CodeByJesus</p>
+                            <span class="developer-tag">{{ translations.DEVELOPER_SYNAPSE_CREATOR }}</span>
+                        </div>
+                    </a>
+                    <p class="follow-message">
+                        <i class="fas fa-lightbulb"></i> 
+                        {{ translations.LIKE_SYNAPSE_CHECKOUT }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <script>
+        // Language change handler
+        document.getElementById('language-select').addEventListener('change', function() {
+            const language = this.value;
+            
+            // Send AJAX request to change language
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `action=change_language&language=${language}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to apply the new language
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error changing language:', error);
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ translations.APP_TITLE|default:"Synapse - Data Analysis Platform" }}{% endblock %}</title>
+    
+    <!-- External Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Application Styles -->
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <h1 class="titulo-interactivo">
+            <span class="texto-titulo">I</span>
+            <div class="corazon-animado" id="corazon"></div>
+            <span class="texto-titulo">Synapse</span>
+        </h1>
+        <div class="encabezado-principal">
+            <h2 class="subtitulo">{{ translations.PROFESSIONAL_ASSISTANT|default:"Professional Data Analysis Assistant" }}</h2>
+            <p class="descripcion">{{ translations.APP_DESCRIPTION|default:"Upload, analyze, and visualize your data with enterprise-grade tools" }}</p>
+        </div>
+    </header>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer>
+        <p>&copy; {{ year|default:2024 }} Synapse Data Platform</p>
+    </footer>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="{% static 'js/funciones.js' %}?v=2.5"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
