@@ -9,9 +9,9 @@
 
 Synapse está disponible en **tres versiones** para diferentes necesidades:
 
-- 🌐 **[Versión Web (GitHub)](https://github.com/CodeByJesus/synapse-web)** - Aplicación web completa con interfaz gráfica
-- 🐧 **[Versión Linux CLI](https://github.com/CodeByJesus/synapse-cli)** - Interfaz de terminal intuitiva para Linux
-- 🪟 **[Versión Windows Portable](https://github.com/CodeByJesus/synapse-windows)** - Aplicación portable para Windows
+- 🌐 **[Versión Web (GitHub)](https://github.com/CodeByJesus/synapse-web){:target="_blank" rel="noopener noreferrer"}** - Aplicación web completa con interfaz gráfica
+- 🐧 **[Versión Linux CLI](https://github.com/CodeByJesus/synapse-cli){:target="_blank" rel="noopener noreferrer"}** - Interfaz de terminal intuitiva para Linux
+- 🪟 **[Versión Windows Portable](https://github.com/CodeByJesus/synapse-windows){:target="_blank" rel="noopener noreferrer"}** - Aplicación portable para Windows
 
 ---
 
@@ -264,10 +264,10 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 **Jesus david martinez julio** - Desarrollador junior enfocado en backend y Data Scientist
 
-- 🌐 [Portfolio](https://portafolio-jesusmartinez.netlify.app/)
-- 💼 [LinkedIn]( https://www.linkedin.com/in/jesus-martinez-bb4596348/)
-- 🐙 [GitHub](https://github.com/CodeByJesus)
-- 📧 [Email](jd67941@gmail.com)
+- 🌐 [Portfolio](https://portafolio-jesusmartinez.netlify.app/){:target="_blank" rel="noopener noreferrer"}
+- 💼 [LinkedIn](https://www.linkedin.com/in/jesus-martinez-bb4596348/){:target="_blank" rel="noopener noreferrer"}
+- 🐙 [GitHub](https://github.com/CodeByJesus){:target="_blank" rel="noopener noreferrer"}
+- 📧 [Email](mailto:jd67941@gmail.com)
 
 ## 🙏 **Agradecimientos**
 
@@ -282,8 +282,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 Si tienes preguntas o necesitas ayuda:
 
 - 📧 **Email**: jesusdmartinezj03@gmail.com
-- 💬 **Issues**: [GitHub Issues](https://github.com/CodeByJesus/synapse-web/issues)
-- 📖 **Documentación**: [Wiki](https://github.com/CodeByJesus/synapse-web/wiki)
+- 💬 **Issues**: [GitHub Issues](https://github.com/CodeByJesus/synapse-web/issues){:target="_blank" rel="noopener noreferrer"}
+- 📖 **Documentación**: [Wiki](https://github.com/CodeByJesus/synapse-web/wiki){:target="_blank" rel="noopener noreferrer"}
 
 ---
 
