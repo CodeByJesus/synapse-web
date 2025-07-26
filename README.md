@@ -262,12 +262,12 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👨‍💻 **Autor**
 
-**Tu Nombre** - Desarrollador Full-Stack y Data Scientist
+**Jesus david martinez julio** - Desarrollador junior enfocado en backend y Data Scientist
 
-- 🌐 [Portfolio](https://tu-portfolio.com)
-- 💼 [LinkedIn](https://linkedin.com/in/tu-perfil)
-- 🐙 [GitHub](https://github.com/tu-usuario)
-- 📧 [Email](mailto:tu-email@ejemplo.com)
+- 🌐 [Portfolio](https://portafolio-jesusmartinez.netlify.app/)
+- 💼 [LinkedIn]( https://www.linkedin.com/in/jesus-martinez-bb4596348/)
+- 🐙 [GitHub](https://github.com/CodeByJesus)
+- 📧 [Email](jd67941@gmail.com)
 
 ## 🙏 **Agradecimientos**
 
@@ -281,7 +281,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 Si tienes preguntas o necesitas ayuda:
 
-- 📧 **Email**: soporte@synapse.com
+- 📧 **Email**: jesusdmartinezj03@gmail.com
 - 💬 **Issues**: [GitHub Issues](https://github.com/CodeByJesus/synapse-web/issues)
 - 📖 **Documentación**: [Wiki](https://github.com/CodeByJesus/synapse-web/wiki)
 
