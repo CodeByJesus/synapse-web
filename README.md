@@ -10,8 +10,7 @@
 Synapse está disponible en **tres versiones** para diferentes necesidades:
 
 - 🌐 **[Versión Web (GitHub)](<https://github.com/CodeByJesus/synapse-web>)** - Aplicación web completa con interfaz gráfica
-- 🐧 **[Versión Linux CLI](<https://github.com/CodeByJesus/synapse-cli>)** - Interfaz de terminal intuitiva para Linux
-- 🪟 **[Versión Windows Portable](<https://github.com/CodeByJesus/synapse-windows>)** - Aplicación portable para Windows
+- 🪟 **[Versión Windows](<https://github.com/CodeByJesus/synapse-windows>)** - Aplicación portable para Windows
 
 ---
 
