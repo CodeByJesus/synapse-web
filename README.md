@@ -1,11 +1,49 @@
-# 🧠 Synapse - Plataforma de Análisis de Datos Inteligente
+# 🧠 Synapse - Proyecto Educativo de Análisis de Datos
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/Django-5.2+-green.svg)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)]()
+[![Status](https://img.shields.io/badge/Status-Educational%20Project-orange.svg)]()
 
-## 📢 **AVISO IMPORTANTE - DISPONIBILIDAD**
+## 🎓 **PROYECTO EDUCATIVO - PROPÓSITO Y CONTEXTO**
+
+**Synapse** es un **proyecto educativo** desarrollado para demostrar habilidades en **análisis de datos** y **desarrollo web**. Es importante aclarar que:
+
+### ✅ **Lo que SÍ incluye:**
+- **Demostración completa** de habilidades en tecnologías de análisis de datos
+- **Implementación práctica** de librerías fundamentales (Pandas, NumPy, Matplotlib)
+- **Desarrollo web** con Django y tecnologías frontend
+- **Generación de PDFs** profesionales con ReportLab
+- **Procesamiento de datos** y visualizaciones interactivas
+- **Arquitectura de software** y buenas prácticas
+
+### ❌ **Lo que NO incluye (limitaciones educativas):**
+- **Funcionalidades avanzadas** de Machine Learning
+- **Automatización completa** con IA
+- **Soporte para Windows** (problemas de compatibilidad)
+- **Características empresariales** como autenticación avanzada
+- **Integración con APIs** externas complejas
+
+### 🎯 **Motivo de Creación:**
+
+Este proyecto fue desarrollado para **demostrar competencias** en las siguientes áreas de **análisis de datos**:
+
+- **📊 Pandas**: Manipulación, limpieza y análisis de datasets
+- **🔢 NumPy**: Computación numérica y operaciones matemáticas
+- **📈 Matplotlib**: Generación de gráficas y visualizaciones
+- **📄 ReportLab**: Creación de reportes PDF profesionales
+- **🌐 Django**: Desarrollo web y arquitectura de aplicaciones
+- **🎨 Frontend**: HTML, CSS, JavaScript para interfaces interactivas
+- **📊 Chart.js**: Visualizaciones dinámicas en el navegador
+- **🔧 Git**: Control de versiones y colaboración
+
+### 🤖 **Limitación de IA:**
+
+El proyecto **no incluye automatización con IA** debido a la **falta de recursos** para implementar sistemas de inteligencia artificial avanzados. Sin embargo, esto permite demostrar **habilidades técnicas puras** en el manejo de datos y desarrollo de software.
+
+---
+
+## 📢 **DISPONIBILIDAD**
 
 Synapse está disponible actualmente solo para **Linux y macOS**:
 
@@ -27,7 +65,7 @@ Por esta razón, la versión Windows no está disponible actualmente.
 
 ## 🚀 **Descripción**
 
-**Synapse** es una plataforma avanzada de análisis de datos que automatiza el proceso de **Exploratory Data Analysis (EDA)** y generación de reportes profesionales. Diseñada para analistas de datos, consultores e investigadores que necesitan insights rápidos y precisos.
+**Synapse** es una **herramienta educativa** de análisis de datos que implementa **Exploratory Data Analysis (EDA)** y generación de reportes. Diseñada para **demostrar competencias** en tecnologías de análisis de datos y desarrollo web.
 
 ### ✨ **Características Principales**
 
@@ -214,31 +252,31 @@ python manage.py test
 python manage.py test data_assistant_app.tests
 ```
 
-## 📈 **Casos de Uso**
+## 📈 **Casos de Uso Educativos**
 
-### **Para Analistas de Datos**
-- **EDA rápido** de nuevos datasets
-- **Limpieza automática** de datos
-- **Generación de reportes** para stakeholders
-- **Identificación de patrones** y anomalías
+### **Para Estudiantes de Data Science**
+- **Práctica de EDA** con datasets reales
+- **Aprendizaje de Pandas** y NumPy
+- **Experimentación** con visualizaciones
+- **Comprensión** de limpieza de datos
 
-### **Para Consultores**
-- **Análisis rápido** de datos de clientes
-- **Reportes profesionales** para presentaciones
-- **Insights automáticos** para recomendaciones
-- **Visualizaciones** para dashboards
+### **Para Desarrolladores Junior**
+- **Demostración** de habilidades en análisis de datos
+- **Portfolio** de proyectos técnicos
+- **Aprendizaje** de Django y desarrollo web
+- **Práctica** con tecnologías frontend
 
-### **Para Investigadores**
-- **Análisis exploratorio** de datasets de investigación
-- **Limpieza de datos** de encuestas
-- **Generación de reportes** para publicaciones
-- **Validación de calidad** de datos
+### **Para Educadores**
+- **Herramienta de enseñanza** para cursos de análisis de datos
+- **Ejemplos prácticos** de implementación de librerías
+- **Demostración** de buenas prácticas de desarrollo
+- **Material educativo** para estudiantes
 
-### **Para Startups**
-- **Análisis de datos** de usuarios
-- **Métricas de producto** y KPIs
-- **Reportes automáticos** para inversores
-- **Insights de crecimiento** y optimización
+### **Para Entrevistas Técnicas**
+- **Portfolio** que demuestra competencias técnicas
+- **Evidencia** de habilidades en múltiples tecnologías
+- **Proyecto completo** que muestra capacidad de desarrollo
+- **Demostración** de conocimientos en análisis de datos
 
 ## 🚀 **Roadmap**
 
@@ -273,7 +311,9 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👨‍💻 **Autor**
 
-**Jesus david martinez julio** - Desarrollador junior enfocado en backend y Data Scientist
+**Jesus david martinez julio** - Desarrollador junior enfocado en **análisis de datos** y **desarrollo web**
+
+**Propósito del Proyecto**: Este proyecto fue desarrollado para **demostrar competencias técnicas** en análisis de datos y desarrollo de software, sirviendo como **portfolio educativo** que evidencia habilidades en múltiples tecnologías.
 
 - 🌐 [Portfolio](https://portafolio-jesusmartinez.netlify.app/)
 - 💼 [LinkedIn](https://www.linkedin.com/in/jesus-martinez-bb4596348/)
@@ -284,11 +324,14 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 🙏 **Agradecimientos**
 
-- **Django** por el framework web robusto
-- **Pandas** por las herramientas de análisis de datos
-- **Chart.js** por las visualizaciones interactivas
+- **Django** por el framework web que permitió demostrar habilidades de desarrollo
+- **Pandas** por las herramientas fundamentales de análisis de datos
+- **NumPy** por la computación numérica esencial
+- **Matplotlib** por las capacidades de visualización
+- **Chart.js** por las visualizaciones interactivas en el navegador
 - **ReportLab** por la generación de PDFs profesionales
-- **Font Awesome** por los iconos
+- **Font Awesome** por los iconos que mejoran la experiencia de usuario
+- **Comunidad de Python** por las librerías que hacen posible el análisis de datos
 
 ## 📞 **Soporte**
 
@@ -302,8 +345,8 @@ Si tienes preguntas o necesitas ayuda:
 
 <div align="center">
 
-**⭐ Si te gusta Synapse, ¡dale una estrella al repositorio! ⭐**
+**⭐ Si te gusta este proyecto educativo, ¡dale una estrella al repositorio! ⭐**
 
-*Construido con ❤️ para la comunidad de Data Science*
+*Construido con ❤️ para demostrar habilidades en análisis de datos y desarrollo web*
 
 </div> 
