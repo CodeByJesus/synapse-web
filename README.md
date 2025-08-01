@@ -5,12 +5,23 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)]()
 
-## 📢 **AVISO IMPORTANTE - VERSIONES DISPONIBLES**
+## 📢 **AVISO IMPORTANTE - DISPONIBILIDAD**
 
-Synapse está disponible en **tres versiones** para diferentes necesidades:
+Synapse está disponible actualmente solo para **Linux y macOS**:
 
 - 🌐 **[Versión Web (GitHub)](<https://github.com/CodeByJesus/synapse-web>)** - Aplicación web completa con interfaz gráfica
-- 🪟 **[Versión Windows](<https://github.com/CodeByJesus/synapse-windows>)** - Aplicación portable para Windows
+
+### ⚠️ **Nota sobre Windows**
+
+Inicialmente se planeó crear una versión portable para Windows, pero se presentaron múltiples errores que se fueron acumulando y no fue posible solucionarlos de manera satisfactoria. Los problemas incluían:
+
+- **Conflictos de dependencias** entre versiones de Python
+- **Problemas de compatibilidad** con librerías específicas de Windows
+- **Errores en la generación** de ejecutables portables
+- **Inconsistencias** en el manejo de rutas de archivos
+- **Limitaciones** en la virtualización de entornos
+
+Por esta razón, la versión Windows no está disponible actualmente.
 
 ---
 
@@ -48,6 +59,7 @@ Synapse está disponible en **tres versiones** para diferentes necesidades:
 - **Git** - Control de versiones
 - **Virtual Environment** - Gestión de dependencias
 - **SQLite** - Base de datos ligera
+- **Linux/macOS** - Sistemas operativos soportados
 
 ## 📦 **Instalación**
 
@@ -55,6 +67,7 @@ Synapse está disponible en **tres versiones** para diferentes necesidades:
 - Python 3.12 o superior
 - pip (gestor de paquetes de Python)
 - Git
+- Linux o macOS (Windows no soportado actualmente)
 
 ### **Pasos de Instalación**
 
@@ -68,8 +81,6 @@ cd synapse-web
 ```bash
 python -m venv venv
 source venv/bin/activate  # En Linux/Mac
-# o
-venv\Scripts\activate     # En Windows
 ```
 
 3. **Instalar dependencias**
@@ -244,6 +255,7 @@ python manage.py test data_assistant_app.tests
 - 📱 **Aplicación móvil** nativa
 - 🔄 **Integración** con herramientas BI
 - 🌐 **API pública** para desarrolladores
+- 🪟 **Soporte para Windows** (cuando se resuelvan los problemas de compatibilidad)
 
 ## 🤝 **Contribuir**
 
