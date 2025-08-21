@@ -129,6 +129,7 @@ def plot_section(df: pd.DataFrame):
             counts = df[col].astype(str).value_counts().head(top_n)
             st.bar_chart(counts)
 
+
 def main():
     st.set_page_config(
         page_title="Synapse - Asistente de Datos",
