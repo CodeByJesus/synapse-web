@@ -56,7 +56,14 @@ LANG = {
         "corr_heatmap_title": "Matriz de correlación",
         "category_column": "Columna categórica",
         "count": "Conteo",
-        "load_prompt": "Carga un archivo para comenzar. También puedes activar el ejemplo en la barra lateral.",
+        "download_report_pdf": "Descargar reporte (PDF)",
+        "analysis_date": "Fecha de análisis",
+        "kpis_title": "KPIs",
+        "insights_title": "Insights",
+        "nulls_by_col": "Nulos por columna (top 5)",
+        "dataset_label": "Conjunto de datos",
+        "figure_word": "Figura",
+        "load_prompt": "Sube un archivo para comenzar. También puedes usar el ejemplo desde la barra lateral.",
         "table_full": "Tabla completa",
         "lang_label": "Idioma / Language",
         "es_label": "Español",
@@ -105,6 +112,12 @@ LANG = {
         "category_column": "Categorical column",
         "count": "Count",
         "download_report_pdf": "Download report (PDF)",
+        "analysis_date": "Analysis date",
+        "kpis_title": "KPIs",
+        "insights_title": "Insights",
+        "nulls_by_col": "Nulls by column (top 5)",
+        "dataset_label": "Dataset",
+        "figure_word": "Figure",
         "load_prompt": "Upload a file to begin. You can also use the example from the sidebar.",
         "table_full": "Full table",
         "lang_label": "Idioma / Language",
@@ -294,34 +307,12 @@ def main():
     with st.sidebar:
         st.header(t("sidebar_load"))
         uploaded = st.file_uploader(t("sidebar_file"), type=["csv", "xlsx"], help="CSV, XLSX")
-        use_example = st.checkbox(t("sidebar_use_example"))
-        example_choice = st.selectbox(
-            t("sidebar_examples"),
-            [t("example_none"), t("example_superstore"), t("example_attrition"), t("example_house")],
-            index=0,
-            key="example_selector"
-        )
         sep = st.text_input(t("sidebar_sep"), value=",")
 
     df = pd.DataFrame()
     file_type = None
 
-    if use_example or example_choice != t("example_none"):
-        try:
-            path = None
-            if example_choice == t("example_superstore"):
-                path = "examples/superstore.csv"
-            elif example_choice == t("example_attrition"):
-                path = "examples/employee-attrition.csv"
-            elif example_choice == t("example_house"):
-                path = "examples/house-prices.csv"
-            if path is None:
-                path = "test_large_file.csv"
-            df = pd.read_csv(path)
-            file_type = "csv"
-        except Exception as e:
-            st.error(f"No se pudo cargar el archivo de ejemplo: {e}")
-    elif uploaded is not None:
+    if uploaded is not None:
         file_type = uploaded.name.split(".")[-1].lower()
         if file_type == "csv":
             # Respetar separador si el usuario lo cambió
@@ -356,19 +347,35 @@ def main():
         st.subheader(t("table_full"))
         st.dataframe(df, use_container_width=True)
 
-    # Descarga de reporte PDF con KPIs y 1-2 gráficos
-    def _build_pdf_report(data: pd.DataFrame) -> bytes:
+    # Descarga de reporte PDF mejorado con KPIs, insights y gráficos
+    def _build_pdf_report(data: pd.DataFrame, dataset_label: str) -> bytes:
         buf = BytesIO()
         c = canvas.Canvas(buf, pagesize=letter)
         width, height = letter
+
+        def draw_footer():
+            c.setFont("Helvetica", 9)
+            c.setFillColorRGB(0.4, 0.4, 0.4)
+            c.drawRightString(width - 36, 24, f"{t('title')} — Pg {c.getPageNumber()}")
+            c.setFillColorRGB(0, 0, 0)
+
+        def hline(y):
+            c.setLineWidth(0.5)
+            c.setStrokeColorRGB(0.8, 0.8, 0.8)
+            c.line(36, y, width - 36, y)
+            c.setStrokeColorRGB(0, 0, 0)
 
         # Portada
         c.setFont("Helvetica-Bold", 18)
         c.drawString(72, height - 72, t("title"))
         c.setFont("Helvetica", 11)
         c.drawString(72, height - 92, f"{t('analysis_date')}: {datetime.now().strftime('%Y-%m-%d')}")
+        if dataset_label:
+            c.drawString(72, height - 110, f"Dataset: {dataset_label}")
+        hline(height - 118)
+        draw_footer()
         # KPIs
-        kpi_y = height - 130
+        kpi_y = height - 150
         kpis = [
             (t("rows"), f"{len(data):,}"),
             (t("cols"), f"{data.shape[1]:,}"),
@@ -380,10 +387,46 @@ def main():
         for i, (k, v) in enumerate(kpis):
             c.drawString(72, kpi_y - 18 * (i + 1), f"• {k}: {v}")
 
+        # Insights rápidos
+        y = kpi_y - 18 * (len(kpis) + 1) - 6
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(72, y, "Insights")
+        y -= 18
+        # Top correlaciones (si aplica)
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        if len(numeric_cols) >= 2:
+            corr = data[numeric_cols].corr(numeric_only=True).abs()
+            pairs = []
+            for i in range(len(numeric_cols)):
+                for j in range(i+1, len(numeric_cols)):
+                    a, b = numeric_cols[i], numeric_cols[j]
+                    val = corr.loc[a, b]
+                    if pd.notna(val):
+                        pairs.append((val, a, b))
+            pairs.sort(reverse=True)
+            top = pairs[:5]
+            c.setFont("Helvetica", 11)
+            for val, a, b in top:
+                c.drawString(72, y, f"• corr({a}, {b}) = {val:.2f}")
+                y -= 16
+
+        # Top nulos por columna
+        null_counts = data.isna().sum().sort_values(ascending=False)
+        top_nulls = [(col, int(cnt), (cnt/len(data))*100 if len(data) else 0) for col, cnt in null_counts.head(5).items() if cnt > 0]
+        if top_nulls:
+            y -= 6
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(72, y, t("nulls_by_col"))
+            y -= 18
+            c.setFont("Helvetica", 11)
+            for col, cnt, pct in top_nulls:
+                c.drawString(72, y, f"• {col}: {cnt} ({pct:.1f}%)")
+                y -= 16
+
+        draw_footer()
         c.showPage()
 
         # Figura 1: Heatmap de correlación (si hay columnas numéricas)
-        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
         if len(numeric_cols) >= 2:
             corr = data[numeric_cols].corr(numeric_only=True)
             fig, ax = plt.subplots(figsize=(6, 6))
@@ -400,7 +443,13 @@ def main():
             plt.close(fig)
             img_buf.seek(0)
             img = ImageReader(img_buf)
-            c.drawImage(img, 72, 72, width=width-144, height=width-144, preserveAspectRatio=True, anchor='sw')
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(72, height - 72, t("corr_heatmap_title"))
+            hline(height - 80)
+            c.drawImage(img, 72, 120, width=width-144, height=width-180, preserveAspectRatio=True, anchor='sw')
+            c.setFont("Helvetica", 10)
+            c.drawString(72, 96, f"Figura 1. {t('corr_heatmap_title')}")
+            draw_footer()
             c.showPage()
 
         # Figura 2: Barras top categorías (si hay categóricas)
@@ -419,15 +468,26 @@ def main():
             plt.close(fig)
             img_buf.seek(0)
             img = ImageReader(img_buf)
-            c.drawImage(img, 72, 72, width=width-144, height=height-144, preserveAspectRatio=True, anchor='sw')
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(72, height - 72, f"{t('plot_tab_bar')} - {cat_col}")
+            hline(height - 80)
+            c.drawImage(img, 72, 120, width=width-144, height=height-190, preserveAspectRatio=True, anchor='sw')
+            c.setFont("Helvetica", 10)
+            c.drawString(72, 96, f"Figura 2. {t('plot_tab_bar')} — {cat_col}")
+            draw_footer()
             c.showPage()
 
         c.save()
         buf.seek(0)
         return buf.read()
 
+    # Etiqueta descriptiva del dataset para el PDF
+    dataset_label = None
+    if uploaded is not None:
+        dataset_label = getattr(uploaded, 'name', 'uploaded_file')
+
     with st.sidebar:
-        pdf_bytes = _build_pdf_report(df)
+        pdf_bytes = _build_pdf_report(df, dataset_label or "")
         st.download_button(
             label=t("download_report_pdf"),
             data=pdf_bytes,
