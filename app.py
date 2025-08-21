@@ -45,7 +45,24 @@ def dataframe_overview(df: pd.DataFrame):
 def show_statistics(df: pd.DataFrame):
     """Estadísticas descriptivas y nulos por columna."""
     st.subheader("Estadísticas descriptivas")
-    st.dataframe(df.describe(include='all', datetime_is_numeric=True).transpose(), use_container_width=True)
+    try:
+        numeric_df = df.select_dtypes(include=[np.number])
+        non_numeric_df = df.select_dtypes(exclude=[np.number])
+
+        parts = []
+        if not numeric_df.empty:
+            parts.append(numeric_df.describe().transpose())
+        if not non_numeric_df.empty:
+            # describe() en no-numéricos devuelve count, unique, top, freq
+            parts.append(non_numeric_df.describe().transpose())
+
+        if parts:
+            desc = pd.concat(parts, axis=0)
+            st.dataframe(desc, use_container_width=True)
+        else:
+            st.info("No hay columnas para calcular estadísticas.")
+    except Exception as e:
+        st.warning(f"No se pudieron calcular las estadísticas: {e}")
 
     st.subheader("Nulos por columna")
     nulls = df.isna().sum().sort_values(ascending=False)
