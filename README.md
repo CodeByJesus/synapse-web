@@ -1,5 +1,7 @@
 # 🧠 Synapse - Proyecto Educativo de Análisis de Datos
 
+ 
+
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/Django-5.2+-green.svg)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -45,9 +47,9 @@ El proyecto **no incluye automatización con IA** debido a la **falta de recurso
 
 ## 📢 **DISPONIBILIDAD**
 
-Synapse está disponible actualmente solo para **Linux y macOS**:
+Synapse está disponible para **ejecución local** en **Linux y macOS**:
 
-- 🌐 **[Versión Web (GitHub)](<https://github.com/CodeByJesus/synapse-web>)** - Aplicación web completa con interfaz gráfica
+- 🧩 **[Código Fuente (GitHub)](<https://github.com/CodeByJesus/synapse-web>)** — Proyecto completo (versión Django para ejecución local)
 
 ### ⚠️ **Nota sobre Windows**
 
@@ -100,6 +102,8 @@ Por esta razón, la versión Windows no está disponible actualmente.
 - **Linux/macOS** - Sistemas operativos soportados
 
 ## 📦 **Instalación**
+
+Para ejecutar la versión completa localmente (entorno educativo con **Django**), sigue los pasos:
 
 ### **Prerrequisitos**
 - Python 3.12 o superior
@@ -310,16 +314,6 @@ python manage.py test data_assistant_app.tests
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
 ---
-
-## ⚡ Demo y Ejemplos Rápidos
-
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<tu-app>.streamlit.app/)
-
-### 🎬 Demo (15s)
-
-![Demo](assets/demo.gif)
-
-<!-- Se eliminó la sección de ejemplos a petición del usuario -->
 
 ## 👨‍💻 **Autor**
 
