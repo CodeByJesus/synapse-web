@@ -97,3 +97,45 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error applying cleaning strategy {strategy}: {e}")
             raise 
+    
+    @staticmethod
+    def load_large_dataset(file_path, chunk_size=10000):
+        """Load large dataset using chunking to avoid memory issues"""
+        try:
+            logger.info(f"Loading large dataset: {file_path}")
+            
+            # Determine file type
+            if file_path.endswith('.csv'):
+                # Count total rows for progress tracking
+                total_rows = sum(1 for _ in open(file_path)) - 1  # -1 for header
+                logger.info(f"Total rows to process: {total_rows}")
+                
+                # Process in chunks
+                chunks = []
+                processed_rows = 0
+                
+                for chunk in pd.read_csv(file_path, chunksize=chunk_size):
+                    processed_rows += len(chunk)
+                    progress = (processed_rows / total_rows) * 100 if total_rows > 0 else 0
+                    
+                    logger.info(f"Processing chunk: {progress:.1f}% complete ({processed_rows}/{total_rows} rows)")
+                    
+                    # Basic cleaning per chunk
+                    chunk_cleaned = chunk.dropna()
+                    chunks.append(chunk_cleaned)
+                
+                # Combine all chunks
+                final_dataset = pd.concat(chunks, ignore_index=True)
+                logger.info(f"Large dataset loaded successfully: {len(final_dataset)} rows")
+                
+                return final_dataset
+                
+            elif file_path.endswith('.xlsx'):
+                # For Excel files, load normally but with memory optimization
+                return pd.read_excel(file_path, engine='openpyxl')
+            else:
+                raise ValueError("Unsupported file format for large dataset")
+                
+        except Exception as e:
+            logger.error(f"Failed to load large dataset from {file_path}: {e}")
+            raise 

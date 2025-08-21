@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Synapse Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="dashboard-title">
+        <i class="fas fa-chart-line"></i>
+        Synapse Dashboard
+    </h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file-upload"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.files_processed|default:0 }}</div>
+                <div class="stat-label">Archivos Procesados</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-table"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.total_rows|default:0 }}</div>
+                <div class="stat-label">Filas Procesadas</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.avg_time|default:0|floatformat:2 }}s</div>
+                <div class="stat-label">Tiempo Promedio</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.errors_count|default:0 }}</div>
+                <div class="stat-label">Errores</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-activity">
+        <h2>Actividad Reciente</h2>
+        <div class="activity-list">
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-{{ activity.icon }}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">{{ activity.title }}</div>
+                    <div class="activity-time">{{ activity.time }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-activity">
+                <i class="fas fa-info-circle"></i>
+                No hay actividad reciente
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="system-info">
+        <h2>Información del Sistema</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Versión:</span>
+                <span class="info-value">Synapse v1.0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Estado:</span>
+                <span class="info-value status-ok">Operativo</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Última Actualización:</span>
+                <span class="info-value">{{ last_update|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-title {
+    text-align: center;
+    color: #2a4d69;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: #4a90e2;
+    width: 60px;
+    text-align: center;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2a4d69;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.recent-activity, .system-info {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.recent-activity h2, .system-info h2 {
+    color: #2a4d69;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    color: #4a90e2;
+    font-size: 1.2rem;
+    width: 30px;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: #333;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+.no-activity {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #333;
+}
+
+.info-value {
+    color: #666;
+}
+
+.status-ok {
+    color: #27ae60;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

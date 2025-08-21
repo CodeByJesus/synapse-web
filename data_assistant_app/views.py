@@ -171,9 +171,15 @@ def render_home_with_analysis(request, dataset, filename, uploaded_file_url=None
     return render(request, 'home.html', context)
 
 def handle_file_upload(request):
-    """Handle new file upload"""
+    """Handle new file upload with security validations"""
     try:
         datafile = request.FILES['datafile']
+        
+        # Validación de seguridad
+        if not validate_uploaded_file(datafile):
+            error_msg = "Archivo no válido. Solo se permiten archivos CSV y Excel."
+            return render_home_with_analysis(request, None, None, error=error_msg)
+        
         cleanup_old_files()
         
         new_filename = append_timestamp_to_filename(datafile.name)
@@ -190,6 +196,37 @@ def handle_file_upload(request):
         error_msg = ErrorHandler.handle_error(request, e, context="file_upload")
         ErrorHandler.log_data_operation("upload", datafile.name if 'datafile' in locals() else 'unknown', success=False)
         return render_home_with_analysis(request, None, filename, error=error_msg)
+
+def validate_uploaded_file(file):
+    """Validate uploaded file for security and format"""
+    try:
+        # Validación de extensión
+        allowed_extensions = ['.csv', '.xlsx', '.xls']
+        file_extension = os.path.splitext(file.name)[1].lower()
+        
+        if file_extension not in allowed_extensions:
+            logger.warning(f"Invalid file extension: {file_extension}")
+            return False
+        
+        # Validación de tamaño (50MB máximo)
+        if file.size > 50 * 1024 * 1024:
+            logger.warning(f"File too large: {file.size} bytes")
+            return False
+        
+        # Validación básica de contenido
+        content = file.read(1024).decode('utf-8', errors='ignore')
+        file.seek(0)  # Reset file pointer
+        
+        # Verificar que contiene datos (al menos una coma o tab)
+        if not any(char in content for char in [',', '\t', ';']):
+            logger.warning("File doesn't appear to contain valid data")
+            return False
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"File validation error: {e}")
+        return False
 
 def handle_data_cleaning(request):
     """Handle data cleaning operations"""
@@ -368,4 +405,216 @@ def handle_language_change(request):
         logger.info(f"Language changed to: {language}")
     
     return JsonResponse({'success': True, 'language': language})
+
+# ===== API ENDPOINTS =====
+def api_upload_file(request):
+    """API endpoint for file upload and processing"""
+    if request.method == 'POST':
+        try:
+            if 'file' not in request.FILES:
+                return JsonResponse({'error': 'No file provided'}, status=400)
+            
+            file = request.FILES['file']
+            
+            # Validate file
+            if not validate_uploaded_file(file):
+                return JsonResponse({'error': 'Invalid file format or size'}, status=400)
+            
+            # Save file
+            fs = FileSystemStorage()
+            filename = fs.save(append_timestamp_to_filename(file.name), file)
+            file_path = os.path.join(settings.MEDIA_ROOT, filename)
+            
+            # Process file
+            try:
+                dataset = DataLoader.load_dataset(file_path)
+                analysis = DataLoader.analyze_dataset(dataset)
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'filename': filename,
+                    'rows': len(dataset),
+                    'columns': len(dataset.columns),
+                    'missing_values': analysis['missing_values']['total'],
+                    'message': 'File processed successfully'
+                })
+                
+            except Exception as e:
+                logger.error(f"API processing error: {e}")
+                return JsonResponse({'error': 'File processing failed'}, status=500)
+                
+        except Exception as e:
+            logger.error(f"API upload error: {e}")
+            return JsonResponse({'error': 'Upload failed'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def api_get_analysis(request, filename):
+    """API endpoint to get analysis results"""
+    if request.method == 'GET':
+        try:
+            file_path = os.path.join(settings.MEDIA_ROOT, filename)
+            
+            if not os.path.exists(file_path):
+                return JsonResponse({'error': 'File not found'}, status=404)
+            
+            dataset = DataLoader.load_dataset(file_path)
+            analysis = DataLoader.analyze_dataset(dataset)
+            
+            return JsonResponse({
+                'status': 'success',
+                'filename': filename,
+                'summary': analysis['summary'],
+                'missing_values': analysis['missing_values'],
+                'numeric_stats': analysis['numeric_stats'],
+                'categorical_freqs': analysis['categorical_freqs']
+            })
+            
+        except Exception as e:
+            logger.error(f"API analysis error: {e}")
+            return JsonResponse({'error': 'Analysis failed'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def api_clean_data(request, filename):
+    """API endpoint to clean data"""
+    if request.method == 'POST':
+        try:
+            strategy = request.POST.get('strategy', 'remove_missing')
+            file_path = os.path.join(settings.MEDIA_ROOT, filename)
+            
+            if not os.path.exists(file_path):
+                return JsonResponse({'error': 'File not found'}, status=404)
+            
+            dataset = DataLoader.load_dataset(file_path)
+            cleaned_dataset = DataLoader.clean_dataset(dataset, strategy)
+            
+            # Save cleaned dataset
+            cleaned_filename = f"cleaned_{filename}"
+            cleaned_path = os.path.join(settings.MEDIA_ROOT, cleaned_filename)
+            cleaned_dataset.to_csv(cleaned_path, index=False)
+            
+            return JsonResponse({
+                'status': 'success',
+                'original_rows': len(dataset),
+                'cleaned_rows': len(cleaned_dataset),
+                'removed_rows': len(dataset) - len(cleaned_dataset),
+                'cleaned_filename': cleaned_filename,
+                'message': f'Data cleaned using {strategy} strategy'
+            })
+            
+        except Exception as e:
+            logger.error(f"API cleaning error: {e}")
+            return JsonResponse({'error': 'Data cleaning failed'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def dashboard(request):
+    """Dashboard view for system monitoring"""
+    try:
+        # Get basic stats (simplified for now)
+        stats = {
+            'files_processed': get_files_processed_count(),
+            'total_rows': get_total_rows_count(),
+            'avg_time': get_avg_processing_time(),
+            'errors_count': get_errors_count()
+        }
+        
+        # Get recent activities
+        recent_activities = get_recent_activities()
+        
+        # Get last update time
+        last_update = get_last_update_time()
+        
+        context = {
+            'stats': stats,
+            'recent_activities': recent_activities,
+            'last_update': last_update
+        }
+        
+        return render(request, 'dashboard.html', context)
+        
+    except Exception as e:
+        logger.error(f"Dashboard error: {e}")
+        return render(request, 'dashboard.html', {
+            'stats': {},
+            'recent_activities': [],
+            'last_update': 'N/A'
+        })
+
+# ===== HELPER FUNCTIONS FOR DASHBOARD =====
+def get_files_processed_count():
+    """Get count of processed files"""
+    try:
+        all_files = get_all_files()
+        return len(all_files)
+    except:
+        return 0
+
+def get_total_rows_count():
+    """Get total rows processed"""
+    try:
+        all_files = get_all_files()
+        total_rows = 0
+        
+        for file_path in all_files[:5]:  # Limit to last 5 files
+            try:
+                dataset = DataLoader.load_dataset(file_path)
+                total_rows += len(dataset)
+            except:
+                continue
+        
+        return total_rows
+    except:
+        return 0
+
+def get_avg_processing_time():
+    """Get average processing time (simplified)"""
+    return 2.5  # Placeholder value
+
+def get_errors_count():
+    """Get error count from logs"""
+    try:
+        log_file = os.path.join(settings.BASE_DIR, 'logs', 'synapse.log')
+        if os.path.exists(log_file):
+            with open(log_file, 'r') as f:
+                content = f.read()
+                return content.count('ERROR')
+        return 0
+    except:
+        return 0
+
+def get_recent_activities():
+    """Get recent activities"""
+    activities = []
+    try:
+        all_files = get_all_files()
+        for file_path in all_files[-3:]:  # Last 3 files
+            filename = os.path.basename(file_path)
+            mod_time = os.path.getmtime(file_path)
+            mod_date = datetime.fromtimestamp(mod_time)
+            
+            activities.append({
+                'title': f'Archivo procesado: {filename}',
+                'time': mod_date.strftime('%d/%m/%Y %H:%M'),
+                'icon': 'file-upload'
+            })
+    except:
+        pass
+    
+    return activities
+
+def get_last_update_time():
+    """Get last update time"""
+    try:
+        all_files = get_all_files()
+        if all_files:
+            latest_file = max(all_files, key=os.path.getmtime)
+            mod_time = os.path.getmtime(latest_file)
+            mod_date = datetime.fromtimestamp(mod_time)
+            return mod_date.strftime('%d/%m/%Y %H:%M:%S')
+    except:
+        pass
+    
+    return 'N/A'
     
