@@ -1,153 +1,176 @@
 #!/usr/bin/env python3
 import streamlit as st
-import PyPDF2
-import re
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
+from datetime import datetime
 
-def extract_pdf_text(uploaded_file):
-    """Extraer texto del PDF"""
-    text = ""
+@st.cache_data(show_spinner=False)
+def load_data(uploaded_file, file_type: str) -> pd.DataFrame:
+    """
+    Carga un archivo CSV/XLSX en un DataFrame de pandas.
+    """
+    if uploaded_file is None:
+        return pd.DataFrame()
     try:
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
-        return text
+        if file_type == "csv":
+            return pd.read_csv(uploaded_file)
+        elif file_type == "xlsx":
+            return pd.read_excel(uploaded_file)
     except Exception as e:
-        st.error(f"Error leyendo PDF: {e}")
-        return ""
+        st.error(f"Error al leer el archivo: {e}")
+        return pd.DataFrame()
 
-def analyze_translations(text):
-    """Analizar qué secciones están en inglés vs español"""
-    results = {
-        'sections_found': [],
-        'sections_missing': [],
-        'english_texts': set(),
-        'spanish_texts': set(),
-        'translation_quality': 'Buena'  # Por defecto asumimos buena calidad
-    }
-    
-    # Secciones a buscar
-    sections = [
-        "SYNAPSE DATA ANALYSIS REPORT", "EXECUTIVE SUMMARY", "TABLE OF CONTENTS",
-        "FILE INFORMATION", "MISSING VALUES", "FINAL DATA TABLE", "DESCRIPTIVE STATISTICS",
-        "CORRELATION ANALYSIS", "CATEGORICAL FREQUENCIES", "CUSTOM CHART",
-        "DATA QUALITY INSIGHTS", "CLEANING NOTES", "OBSERVATIONS AND RECOMMENDATIONS"
-    ]
-    
-    # Patrones en inglés
-    english_patterns = [
-        r"Data Quality Score", r"Total missing values", r"Column.*Mean.*Median.*Std Dev",
-        r"Value.*Frequency", r"Examples of rows with incomplete data", r"Row \d+: Missing",
-        r"Available data", r"Applied strategy", r"Removed rows with missing values",
-        r"Filled missing values with", r"High variability detected", r"Potential outliers detected",
-        r"Data shows skewness", r"High cardinality", r"Imbalanced categories",
-        r"Small sample size", r"Missing values detected", r"Mixed data types detected",
-        r"Duplicate values detected", r"Critical.*Warning.*Information",
-        r"Bar Chart", r"Line Chart", r"Scatter Plot", r"Unsupported chart type"
-    ]
-    
-    # Patrones en español
-    spanish_patterns = [
-        r"REPORTE DE ANÁLISIS DE DATOS SYNAPSE", r"RESUMEN EJECUTIVO",
-        r"INFORMACIÓN DEL ARCHIVO", r"VALORES FALTANTES", r"ESTADÍSTICAS DESCRIPTIVAS",
-        r"FRECUENCIAS CATEGÓRICAS", r"OBSERVACIONES Y RECOMENDACIONES",
-        r"Total de valores faltantes", r"Nombre del archivo", r"Número de filas",
-        r"Número de columnas", r"Fecha de análisis", r"Columna", r"Media",
-        r"Mediana", r"Desv\. Est\.", r"Mín", r"Máx", r"Valor", r"Frecuencia",
-        r"Porcentaje"
-    ]
-    
-    # Verificar secciones
-    for section in sections:
-        if section in text:
-            results['sections_found'].append(section)
+def dataframe_overview(df: pd.DataFrame):
+    """Muestra información general del DataFrame."""
+    st.subheader("Información del archivo")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Filas", f"{len(df):,}")
+    with col2:
+        st.metric("Columnas", f"{df.shape[1]:,}")
+    with col3:
+        st.metric("Nulos totales", f"{int(df.isna().sum().sum()):,}")
+    with col4:
+        st.metric("Fecha de análisis", datetime.now().strftime("%Y-%m-%d"))
+
+    st.subheader("Vista previa")
+    st.dataframe(df.head(50), use_container_width=True)
+
+    with st.expander("Tipos de datos"):
+        dtypes_df = pd.DataFrame({"columna": df.columns, "dtype": df.dtypes.astype(str)})
+        st.dataframe(dtypes_df, use_container_width=True)
+
+def show_statistics(df: pd.DataFrame):
+    """Estadísticas descriptivas y nulos por columna."""
+    st.subheader("Estadísticas descriptivas")
+    st.dataframe(df.describe(include='all', datetime_is_numeric=True).transpose(), use_container_width=True)
+
+    st.subheader("Nulos por columna")
+    nulls = df.isna().sum().sort_values(ascending=False)
+    st.bar_chart(nulls)
+
+def plot_section(df: pd.DataFrame):
+    """Sección de gráficas con Matplotlib integrado en Streamlit."""
+    st.subheader("Gráficas")
+
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+    tab_hist, tab_box, tab_scatter, tab_corr, tab_bar = st.tabs([
+        "Histograma", "Boxplot", "Dispersión", "Correlación", "Barras"
+    ])
+
+    with tab_hist:
+        if not numeric_cols:
+            st.info("No hay columnas numéricas para graficar.")
         else:
-            results['sections_missing'].append(section)
-    
-    # Buscar textos en inglés
-    for pattern in english_patterns:
-        matches = re.findall(pattern, text, re.IGNORECASE)
-        if matches:
-            results['english_texts'].update(matches)
-    
-    # Buscar textos en español
-    for pattern in spanish_patterns:
-        matches = re.findall(pattern, text, re.IGNORECASE)
-        if matches:
-            results['spanish_texts'].update(matches)
-    
-    # Evaluar calidad de la traducción
-    if results['english_texts'] and results['spanish_texts']:
-        results['translation_quality'] = 'Mixta (contiene textos en inglés y español)'
-    elif results['english_texts'] and not results['spanish_texts']:
-        results['translation_quality'] = 'Solo inglés (sin traducción)'
-    elif not results['english_texts'] and results['spanish_texts']:
-        results['translation_quality'] = 'Completa (solo español)'
-    
-    return results
+            col = st.selectbox("Columna numérica", numeric_cols, key="hist_col")
+            bins = st.slider("Bins", 5, 100, 30)
+            fig, ax = plt.subplots()
+            ax.hist(df[col].dropna(), bins=bins, color="#4e79a7")
+            ax.set_title(f"Histograma - {col}")
+            st.pyplot(fig)
+
+    with tab_box:
+        if not numeric_cols:
+            st.info("No hay columnas numéricas para graficar.")
+        else:
+            col = st.selectbox("Columna numérica", numeric_cols, key="box_col")
+            fig, ax = plt.subplots()
+            ax.boxplot(df[col].dropna(), vert=True)
+            ax.set_title(f"Boxplot - {col}")
+            st.pyplot(fig)
+
+    with tab_scatter:
+        if len(numeric_cols) < 2:
+            st.info("Se requieren al menos 2 columnas numéricas para dispersión.")
+        else:
+            x = st.selectbox("X", numeric_cols, key="scatter_x")
+            y = st.selectbox("Y", [c for c in numeric_cols if c != x], key="scatter_y")
+            fig, ax = plt.subplots()
+            ax.scatter(df[x], df[y], alpha=0.7)
+            ax.set_xlabel(x)
+            ax.set_ylabel(y)
+            ax.set_title(f"Dispersión - {x} vs {y}")
+            st.pyplot(fig)
+
+    with tab_corr:
+        if len(numeric_cols) < 2:
+            st.info("Se requieren al menos 2 columnas numéricas para correlación.")
+        else:
+            corr = df[numeric_cols].corr(numeric_only=True)
+            st.dataframe(corr, use_container_width=True)
+
+    with tab_bar:
+        if not categorical_cols:
+            st.info("No hay columnas categóricas para graficar.")
+        else:
+            col = st.selectbox("Columna categórica", categorical_cols, key="bar_col")
+            top_n = st.slider("Top categorías", 3, 50, 10)
+            counts = df[col].astype(str).value_counts().head(top_n)
+            st.bar_chart(counts)
 
 def main():
     st.set_page_config(
-        page_title="Analizador de Traducciones PDF",
-        page_icon="📄",
+        page_title="Synapse - Asistente de Datos",
+        page_icon="📊",
         layout="wide"
     )
-    
-    st.title("📄 Analizador de Traducciones PDF")
-    st.markdown("""
-    Sube un archivo PDF para analizar la calidad de las traducciones entre inglés y español.
-    """)
-    
-    uploaded_file = st.file_uploader("Sube tu archivo PDF", type="pdf")
-    
-    if uploaded_file is not None:
-        with st.spinner('Analizando el documento...'):
-            text = extract_pdf_text(uploaded_file)
-            if text:
-                results = analyze_translations(text)
-                
-                # Mostrar resultados
-                st.header("📊 Resultados del Análisis")
-                
-                # Calidad de la traducción
-                st.markdown("""
-                ### Calidad de la Traducción
-                <div style='padding: 10px; border-radius: 5px; background-color: #f0f2f6; margin: 10px 0;'>
-                    <span style='font-weight: bold;'>{}</span>
-                </div>
-                """.format(results['translation_quality']), unsafe_allow_html=True)
-                
-                # Secciones encontradas
-                with st.expander("📑 Secciones del Documento", expanded=True):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.subheader("✅ Secciones Encontradas")
-                        for section in results['sections_found']:
-                            st.success(f"✓ {section}")
-                    with col2:
-                        if results['sections_missing']:
-                            st.subheader("❌ Secciones Faltantes")
-                            for section in results['sections_missing']:
-                                st.error(f"✗ {section}")
-                
-                # Textos en inglés
-                if results['english_texts']:
-                    with st.expander("🔍 Textos en Inglés Encontrados", expanded=False):
-                        st.warning("Se encontraron los siguientes textos en inglés:")
-                        for text in sorted(results['english_texts']):
-                            st.write(f"- {text}")
-                
-                # Textos en español
-                if results['spanish_texts']:
-                    with st.expander("🔍 Textos en Español Encontrados", expanded=False):
-                        st.success("Se encontraron los siguientes textos en español:")
-                        for text in sorted(results['spanish_texts']):
-                            st.write(f"- {text}")
-                
-                # Vista previa del texto
-                with st.expander("📄 Vista Previa del Texto", expanded=False):
-                    st.text_area("Primeras 500 caracteres del documento:", 
-                               value=text[:500] + ("..." if len(text) > 500 else ""),
-                               height=200)
+
+    st.title("📊 Synapse - Asistente de Datos")
+    st.markdown("Sube un archivo CSV o XLSX para explorar, analizar y visualizar tus datos.")
+
+    with st.sidebar:
+        st.header("1) Carga de datos")
+        uploaded = st.file_uploader("Archivo", type=["csv", "xlsx"], help="Formatos soportados: CSV, XLSX")
+        use_example = st.checkbox("Usar archivo de ejemplo (test_large_file.csv)")
+        sep = st.text_input("Separador CSV (solo si es CSV)", value=",")
+
+    df = pd.DataFrame()
+    file_type = None
+
+    if use_example:
+        try:
+            df = pd.read_csv("test_large_file.csv")
+            file_type = "csv"
+        except Exception as e:
+            st.error(f"No se pudo cargar el archivo de ejemplo: {e}")
+    elif uploaded is not None:
+        file_type = uploaded.name.split(".")[-1].lower()
+        if file_type == "csv":
+            # Respetar separador si el usuario lo cambió
+            df = load_data(BytesIO(uploaded.read() if hasattr(uploaded, 'read') else uploaded), "csv")
+            if not df.empty and sep != ",":
+                uploaded.seek(0)
+                df = pd.read_csv(uploaded, sep=sep)
+        elif file_type in ("xlsx", "xls"):
+            df = load_data(uploaded, "xlsx")
+        else:
+            st.warning("Formato no soportado. Usa CSV o XLSX.")
+
+    if df is None or df.empty:
+        st.info("Carga un archivo para comenzar. También puedes activar el ejemplo en la barra lateral.")
+        return
+
+    # Secciones principales
+    tab_overview, tab_stats, tab_plots, tab_data = st.tabs([
+        "Resumen", "Estadísticas", "Gráficas", "Datos"
+    ])
+
+    with tab_overview:
+        dataframe_overview(df)
+
+    with tab_stats:
+        show_statistics(df)
+
+    with tab_plots:
+        plot_section(df)
+
+    with tab_data:
+        st.subheader("Tabla completa")
+        st.dataframe(df, use_container_width=True)
 
 if __name__ == "__main__":
     main()

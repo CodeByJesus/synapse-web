@@ -1,2 +1,25 @@
+# Synapse Data Platform - Dependencies
+# Core web framework
+Django==5.2.4
+
+# Data analysis and manipulation
+pandas==2.3.1
+numpy==2.3.1
+
+# File format support
+openpyxl==3.1.5
+
+# API framework
+djangorestframework==3.16.0
+
+# PDF generation
+reportlab==4.4.3
+
+# Image processing
+pillow==11.3.0
+
+# Data visualization
+matplotlib==3.8.4 
+
 streamlit==1.32.0
 PyPDF2==3.0.1
