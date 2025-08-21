@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from datetime import datetime
  
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 
 
 # --- Traducciones simples (ES/EN) ---
@@ -16,6 +20,11 @@ LANG = {
         "sidebar_load": "1) Carga de datos",
         "sidebar_file": "Archivo",
         "sidebar_use_example": "Usar archivo de ejemplo (test_large_file.csv)",
+        "sidebar_examples": "Ejemplos",
+        "example_none": "(ninguno)",
+        "example_superstore": "Superstore (pérdida por producto)",
+        "example_attrition": "Employee Attrition (rotación)",
+        "example_house": "House Prices (precio)",
         "sidebar_sep": "Separador CSV (solo si es CSV)",
         "tab_overview": "Resumen",
         "tab_stats": "Estadísticas",
@@ -59,6 +68,11 @@ LANG = {
         "sidebar_load": "1) Data load",
         "sidebar_file": "File",
         "sidebar_use_example": "Use example file (test_large_file.csv)",
+        "sidebar_examples": "Examples",
+        "example_none": "(none)",
+        "example_superstore": "Superstore (loss by product)",
+        "example_attrition": "Employee Attrition (attrition)",
+        "example_house": "House Prices (price)",
         "sidebar_sep": "CSV separator (CSV only)",
         "tab_overview": "Overview",
         "tab_stats": "Statistics",
@@ -90,6 +104,7 @@ LANG = {
         "corr_heatmap_title": "Correlation matrix",
         "category_column": "Categorical column",
         "count": "Count",
+        "download_report_pdf": "Download report (PDF)",
         "load_prompt": "Upload a file to begin. You can also use the example from the sidebar.",
         "table_full": "Full table",
         "lang_label": "Idioma / Language",
@@ -280,14 +295,29 @@ def main():
         st.header(t("sidebar_load"))
         uploaded = st.file_uploader(t("sidebar_file"), type=["csv", "xlsx"], help="CSV, XLSX")
         use_example = st.checkbox(t("sidebar_use_example"))
+        example_choice = st.selectbox(
+            t("sidebar_examples"),
+            [t("example_none"), t("example_superstore"), t("example_attrition"), t("example_house")],
+            index=0,
+            key="example_selector"
+        )
         sep = st.text_input(t("sidebar_sep"), value=",")
 
     df = pd.DataFrame()
     file_type = None
 
-    if use_example:
+    if use_example or example_choice != t("example_none"):
         try:
-            df = pd.read_csv("test_large_file.csv")
+            path = None
+            if example_choice == t("example_superstore"):
+                path = "examples/superstore.csv"
+            elif example_choice == t("example_attrition"):
+                path = "examples/employee-attrition.csv"
+            elif example_choice == t("example_house"):
+                path = "examples/house-prices.csv"
+            if path is None:
+                path = "test_large_file.csv"
+            df = pd.read_csv(path)
             file_type = "csv"
         except Exception as e:
             st.error(f"No se pudo cargar el archivo de ejemplo: {e}")
@@ -325,6 +355,85 @@ def main():
     with tab_data:
         st.subheader(t("table_full"))
         st.dataframe(df, use_container_width=True)
+
+    # Descarga de reporte PDF con KPIs y 1-2 gráficos
+    def _build_pdf_report(data: pd.DataFrame) -> bytes:
+        buf = BytesIO()
+        c = canvas.Canvas(buf, pagesize=letter)
+        width, height = letter
+
+        # Portada
+        c.setFont("Helvetica-Bold", 18)
+        c.drawString(72, height - 72, t("title"))
+        c.setFont("Helvetica", 11)
+        c.drawString(72, height - 92, f"{t('analysis_date')}: {datetime.now().strftime('%Y-%m-%d')}")
+        # KPIs
+        kpi_y = height - 130
+        kpis = [
+            (t("rows"), f"{len(data):,}"),
+            (t("cols"), f"{data.shape[1]:,}"),
+            (t("nulls_total"), f"{int(data.isna().sum().sum()):,}")
+        ]
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(72, kpi_y, "KPIs")
+        c.setFont("Helvetica", 11)
+        for i, (k, v) in enumerate(kpis):
+            c.drawString(72, kpi_y - 18 * (i + 1), f"• {k}: {v}")
+
+        c.showPage()
+
+        # Figura 1: Heatmap de correlación (si hay columnas numéricas)
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        if len(numeric_cols) >= 2:
+            corr = data[numeric_cols].corr(numeric_only=True)
+            fig, ax = plt.subplots(figsize=(6, 6))
+            cax = ax.imshow(corr, cmap="coolwarm", vmin=-1, vmax=1)
+            ax.set_xticks(range(len(numeric_cols)))
+            ax.set_yticks(range(len(numeric_cols)))
+            ax.set_xticklabels(numeric_cols, rotation=45, ha='right', fontsize=8)
+            ax.set_yticklabels(numeric_cols, fontsize=8)
+            ax.set_title(t("corr_heatmap_title"))
+            fig.colorbar(cax)
+            img_buf = BytesIO()
+            fig.tight_layout()
+            fig.savefig(img_buf, format='png', dpi=150)
+            plt.close(fig)
+            img_buf.seek(0)
+            img = ImageReader(img_buf)
+            c.drawImage(img, 72, 72, width=width-144, height=width-144, preserveAspectRatio=True, anchor='sw')
+            c.showPage()
+
+        # Figura 2: Barras top categorías (si hay categóricas)
+        categorical_cols = data.select_dtypes(exclude=[np.number]).columns.tolist()
+        if categorical_cols:
+            cat_col = categorical_cols[0]
+            counts = data[cat_col].astype(str).fillna("NA").value_counts().head(20)
+            fig, ax = plt.subplots(figsize=(7.5, 5))
+            counts.plot(kind='bar', ax=ax, color="#59a14f")
+            ax.set_title(f"{t('plot_tab_bar')} - {cat_col}")
+            ax.set_xlabel(cat_col)
+            ax.set_ylabel(t("count"))
+            fig.tight_layout()
+            img_buf = BytesIO()
+            fig.savefig(img_buf, format='png', dpi=150)
+            plt.close(fig)
+            img_buf.seek(0)
+            img = ImageReader(img_buf)
+            c.drawImage(img, 72, 72, width=width-144, height=height-144, preserveAspectRatio=True, anchor='sw')
+            c.showPage()
+
+        c.save()
+        buf.seek(0)
+        return buf.read()
+
+    with st.sidebar:
+        pdf_bytes = _build_pdf_report(df)
+        st.download_button(
+            label=t("download_report_pdf"),
+            data=pdf_bytes,
+            file_name=f"synapse_report_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf"
+        )
 
 if __name__ == "__main__":
     main()

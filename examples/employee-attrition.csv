@@ -1,0 +1,6 @@
+EmployeeID,Age,Department,JobRole,MonthlyIncome,OverTime,YearsAtCompany,Attrition
+1001,29,Sales,Sales Executive,4200,Yes,3,Yes
+1002,45,Research & Development,Research Scientist,7800,No,10,No
+1003,36,Human Resources,HR Specialist,5200,Yes,6,Yes
+1004,28,Sales,Sales Representative,3500,Yes,1,Yes
+1005,41,Research & Development,Laboratory Technician,4800,No,8,No

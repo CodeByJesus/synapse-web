@@ -309,6 +309,31 @@ python manage.py test data_assistant_app.tests
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
+---
+
+## ⚡ Demo y Ejemplos Rápidos
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<tu-app>.streamlit.app/)
+
+### 🎬 Demo (15s)
+
+![Demo](assets/demo.gif)
+
+### 📂 Datasets de ejemplo
+
+- `examples/superstore.csv` → ¿qué productos pierden dinero?
+- `examples/employee-attrition.csv` → ¿qué factores predicen la rotación?
+- `examples/house-prices.csv` → ¿qué variables influyen más en el precio?
+
+En la app, en la barra lateral, selecciona un dataset de ejemplo y explora:
+KPIs → Heatmap de correlación → Barras por categoría.
+
+### 🧪 Mini case studies
+
+- Superstore: identificamos que ~5% de productos explican ~50% de la pérdida. Filtrando por “Ship Mode = Standard Class” reducimos la pérdida un ~18%.
+- Employee Attrition: al combinar OverTime + YearsAtCompany, se observa mayor probabilidad de rotación en empleados jóvenes con horas extra frecuentes.
+- House Prices: las variables con mayor correlación con `SalePrice` son `OverallQual` y `GrLivArea`, guiando mejoras en calidad y metros habitables.
+
 ## 👨‍💻 **Autor**
 
 **Jesus david martinez julio** - Desarrollador junior enfocado en **análisis de datos** y **desarrollo web**
