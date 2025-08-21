@@ -1,7 +1,15 @@
+#!/usr/bin/env python3
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
+from datetime import datetime
+from PIL import Image, ImageDraw
+
+# Icono generado con Pillow (debe declararse después de importar PIL)
 def _make_app_icon(size: int = 96) -> Image.Image:
-    """Genera un ícono simple (sin emojis) usando Pillow para usar en la app.
-    Crea un recuadro con barras tipo gráfico.
-    """
+    """Genera un ícono simple (sin emojis) para la app (barras tipo gráfico)."""
     img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
     # Fondo blanco con borde gris
@@ -18,14 +26,6 @@ def _make_app_icon(size: int = 96) -> Image.Image:
         draw.rectangle([x, top_y, x + bar_w, base_y], fill=(30, 136, 229, 255))
         x += bar_w + gap
     return img
-#!/usr/bin/env python3
-import streamlit as st
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from io import BytesIO
-from datetime import datetime
-from PIL import Image, ImageDraw
 
 # --- Traducciones simples (ES/EN) ---
 LANG = {
