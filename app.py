@@ -104,10 +104,21 @@ def plot_section(df: pd.DataFrame):
         if len(numeric_cols) < 2:
             st.info("Se requieren al menos 2 columnas numéricas para dispersión.")
         else:
-            x = st.selectbox("X", numeric_cols, key="scatter_x")
-            y = st.selectbox("Y", [c for c in numeric_cols if c != x], key="scatter_y")
+            x = st.selectbox("Eje X (numérica)", numeric_cols, key="scatter_x")
+            y = st.selectbox("Eje Y (numérica)", [c for c in numeric_cols if c != x], key="scatter_y")
+            # Color por categoría (opcional)
+            color_choice = "(ninguno)"
+            if categorical_cols:
+                color_choice = st.selectbox("Color por (opcional)", ["(ninguno)"] + categorical_cols, key="scatter_color")
             fig, ax = plt.subplots()
-            ax.scatter(df[x], df[y], alpha=0.7)
+            if color_choice == "(ninguno)" or color_choice not in df.columns:
+                ax.scatter(df[x], df[y], alpha=0.7)
+            else:
+                cats = df[color_choice].astype(str).fillna("NA").unique()[:10]
+                for c in cats:
+                    m = (df[color_choice].astype(str) == c)
+                    ax.scatter(df.loc[m, x], df.loc[m, y], alpha=0.7, label=c)
+                ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
             ax.set_xlabel(x)
             ax.set_ylabel(y)
             ax.set_title(f"Dispersión - {x} vs {y}")
@@ -119,6 +130,16 @@ def plot_section(df: pd.DataFrame):
         else:
             corr = df[numeric_cols].corr(numeric_only=True)
             st.dataframe(corr, use_container_width=True)
+            # Heatmap de correlación
+            fig, ax = plt.subplots(figsize=(min(8, 1 + 0.5 * len(numeric_cols)), min(8, 1 + 0.5 * len(numeric_cols))))
+            cax = ax.imshow(corr, cmap="coolwarm", vmin=-1, vmax=1)
+            ax.set_xticks(range(len(numeric_cols)))
+            ax.set_yticks(range(len(numeric_cols)))
+            ax.set_xticklabels(numeric_cols, rotation=45, ha="right")
+            ax.set_yticklabels(numeric_cols)
+            fig.colorbar(cax, ax=ax, fraction=0.046, pad=0.04)
+            ax.set_title("Matriz de correlación")
+            st.pyplot(fig)
 
     with tab_bar:
         if not categorical_cols:
@@ -133,11 +154,10 @@ def plot_section(df: pd.DataFrame):
 def main():
     st.set_page_config(
         page_title="Synapse - Asistente de Datos",
-        page_icon="📊",
         layout="wide"
     )
 
-    st.title("📊 Synapse - Asistente de Datos")
+    st.title("Synapse - Asistente de Datos")
     st.markdown("Sube un archivo CSV o XLSX para explorar, analizar y visualizar tus datos.")
 
     with st.sidebar:
