@@ -20,6 +20,11 @@ LANG = {
         "tab_overview": "Resumen",
         "tab_stats": "Estadísticas",
         "tab_plots": "Gráficas",
+        "plot_tab_hist": "Histograma",
+        "plot_tab_box": "Boxplot",
+        "plot_tab_scatter": "Dispersión",
+        "plot_tab_corr": "Correlación",
+        "plot_tab_bar": "Barras",
         "tab_data": "Datos",
         "info_file": "Información del archivo",
         "preview": "Vista previa",
@@ -31,6 +36,17 @@ LANG = {
         "desc_stats": "Estadísticas descriptivas",
         "no_cols_stats": "No hay columnas para calcular estadísticas.",
         "nulls_by_col": "Nulos por columna",
+        "no_numeric_for_plot": "No hay columnas numéricas para graficar.",
+        "need_two_numeric": "Se requieren al menos 2 columnas numéricas para esta gráfica.",
+        "numeric_column": "Columna numérica",
+        "bins": "Bins",
+        "x_axis_numeric": "Eje X (numérica)",
+        "y_axis_numeric": "Eje Y (numérica)",
+        "color_by_optional": "Color por (opcional)",
+        "none_option": "(ninguno)",
+        "corr_heatmap_title": "Matriz de correlación",
+        "category_column": "Columna categórica",
+        "count": "Conteo",
         "load_prompt": "Carga un archivo para comenzar. También puedes activar el ejemplo en la barra lateral.",
         "table_full": "Tabla completa",
         "lang_label": "Idioma / Language",
@@ -47,6 +63,11 @@ LANG = {
         "tab_overview": "Overview",
         "tab_stats": "Statistics",
         "tab_plots": "Charts",
+        "plot_tab_hist": "Histogram",
+        "plot_tab_box": "Boxplot",
+        "plot_tab_scatter": "Scatter",
+        "plot_tab_corr": "Correlation",
+        "plot_tab_bar": "Bar",
         "tab_data": "Data",
         "info_file": "File information",
         "preview": "Preview",
@@ -58,6 +79,17 @@ LANG = {
         "desc_stats": "Descriptive statistics",
         "no_cols_stats": "There are no columns to compute statistics.",
         "nulls_by_col": "Nulls by column",
+        "no_numeric_for_plot": "There are no numeric columns to plot.",
+        "need_two_numeric": "At least 2 numeric columns are required for this chart.",
+        "numeric_column": "Numeric column",
+        "bins": "Bins",
+        "x_axis_numeric": "X axis (numeric)",
+        "y_axis_numeric": "Y axis (numeric)",
+        "color_by_optional": "Color by (optional)",
+        "none_option": "(none)",
+        "corr_heatmap_title": "Correlation matrix",
+        "category_column": "Categorical column",
+        "count": "Count",
         "load_prompt": "Upload a file to begin. You can also use the example from the sidebar.",
         "table_full": "Full table",
         "lang_label": "Idioma / Language",
@@ -140,42 +172,42 @@ def plot_section(df: pd.DataFrame):
     categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
 
     tab_hist, tab_box, tab_scatter, tab_corr, tab_bar = st.tabs([
-        "Histograma", "Boxplot", "Dispersión", "Correlación", "Barras"
+        t("plot_tab_hist"), t("plot_tab_box"), t("plot_tab_scatter"), t("plot_tab_corr"), t("plot_tab_bar")
     ])
 
     with tab_hist:
         if not numeric_cols:
-            st.info("No hay columnas numéricas para graficar.")
+            st.info(t("no_numeric_for_plot"))
         else:
-            col = st.selectbox("Columna numérica", numeric_cols, key="hist_col")
-            bins = st.slider("Bins", 5, 100, 30)
+            col = st.selectbox(t("numeric_column"), numeric_cols, key="hist_col")
+            bins = st.slider(t("bins"), 5, 100, 30)
             fig, ax = plt.subplots()
             ax.hist(df[col].dropna(), bins=bins, color="#4e79a7")
-            ax.set_title(f"Histograma - {col}")
+            ax.set_title(f"{t('plot_tab_hist')} - {col}")
             st.pyplot(fig)
 
     with tab_box:
         if not numeric_cols:
-            st.info("No hay columnas numéricas para graficar.")
+            st.info(t("no_numeric_for_plot"))
         else:
-            col = st.selectbox("Columna numérica", numeric_cols, key="box_col")
+            col = st.selectbox(t("numeric_column"), numeric_cols, key="box_col")
             fig, ax = plt.subplots()
             ax.boxplot(df[col].dropna(), vert=True)
-            ax.set_title(f"Boxplot - {col}")
+            ax.set_title(f"{t('plot_tab_box')} - {col}")
             st.pyplot(fig)
 
     with tab_scatter:
         if len(numeric_cols) < 2:
-            st.info("Se requieren al menos 2 columnas numéricas para dispersión.")
+            st.info(t("need_two_numeric"))
         else:
-            x = st.selectbox("Eje X (numérica)", numeric_cols, key="scatter_x")
-            y = st.selectbox("Eje Y (numérica)", [c for c in numeric_cols if c != x], key="scatter_y")
+            x = st.selectbox(t("x_axis_numeric"), numeric_cols, key="scatter_x")
+            y = st.selectbox(t("y_axis_numeric"), [c for c in numeric_cols if c != x], key="scatter_y")
             # Color por categoría (opcional)
-            color_choice = "(ninguno)"
+            color_choice = t("none_option")
             if categorical_cols:
-                color_choice = st.selectbox("Color por (opcional)", ["(ninguno)"] + categorical_cols, key="scatter_color")
+                color_choice = st.selectbox(t("color_by_optional"), [t("none_option")] + categorical_cols, key="scatter_color")
             fig, ax = plt.subplots()
-            if color_choice == "(ninguno)" or color_choice not in df.columns:
+            if color_choice == t("none_option") or color_choice not in df.columns:
                 ax.scatter(df[x], df[y], alpha=0.7)
             else:
                 cats = df[color_choice].astype(str).fillna("NA").unique()[:10]
@@ -185,12 +217,12 @@ def plot_section(df: pd.DataFrame):
                 ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
             ax.set_xlabel(x)
             ax.set_ylabel(y)
-            ax.set_title(f"Dispersión - {x} vs {y}")
+            ax.set_title(f"{t('plot_tab_scatter')} - {x} vs {y}")
             st.pyplot(fig)
 
     with tab_corr:
         if len(numeric_cols) < 2:
-            st.info("Se requieren al menos 2 columnas numéricas para correlación.")
+            st.info(t("need_two_numeric"))
         else:
             corr = df[numeric_cols].corr(numeric_only=True)
             st.dataframe(corr, use_container_width=True)
@@ -201,19 +233,22 @@ def plot_section(df: pd.DataFrame):
             ax.set_yticks(range(len(numeric_cols)))
             ax.set_xticklabels(numeric_cols, rotation=45, ha="right")
             ax.set_yticklabels(numeric_cols)
+            ax.set_title(t("corr_heatmap_title"))
             fig.colorbar(cax, ax=ax, fraction=0.046, pad=0.04)
-            ax.set_title("Matriz de correlación")
             st.pyplot(fig)
 
     with tab_bar:
         if not categorical_cols:
-            st.info("No hay columnas categóricas para graficar.")
+            st.info(t("category_column") + ": -")
         else:
-            col = st.selectbox("Columna categórica", categorical_cols, key="bar_col")
-            top_n = st.slider("Top categorías", 3, 50, 10)
-            counts = df[col].astype(str).value_counts().head(top_n)
-            st.bar_chart(counts)
-
+            cat_col = st.selectbox(t("category_column"), categorical_cols, key="bar_cat_col")
+            counts = df[cat_col].astype(str).fillna("NA").value_counts().head(20)
+            fig, ax = plt.subplots()
+            counts.plot(kind='bar', ax=ax, color="#59a14f")
+            ax.set_title(f"{t('plot_tab_bar')} - {cat_col}")
+            ax.set_xlabel(cat_col)
+            ax.set_ylabel(t("count"))
+            st.pyplot(fig)
 
 def main():
     st.set_page_config(
@@ -236,7 +271,10 @@ def main():
             label_visibility="collapsed",
             key="lang_selector_top"
         )
-        st.session_state["lang"] = "es" if choice_lbl == "ES" else "en"
+        new_lang = "es" if choice_lbl == "ES" else "en"
+        if new_lang != current:
+            st.session_state["lang"] = new_lang
+            st.rerun()
 
     with st.sidebar:
         st.header(t("sidebar_load"))
