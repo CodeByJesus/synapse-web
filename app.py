@@ -5,27 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 from datetime import datetime
-from PIL import Image, ImageDraw
+ 
 
-# Icono generado con Pillow (debe declararse después de importar PIL)
-def _make_app_icon(size: int = 96) -> Image.Image:
-    """Genera un ícono simple (sin emojis) para la app (barras tipo gráfico)."""
-    img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    draw = ImageDraw.Draw(img)
-    # Fondo blanco con borde gris
-    draw.rectangle([0, 0, size-1, size-1], fill=(255, 255, 255, 255), outline=(200, 200, 200, 255))
-    # Barras estilo gráfico
-    margin = int(size * 0.15)
-    base_y = size - margin
-    bar_w = int((size - 2 * margin) / 5)
-    gap = int(bar_w * 0.4)
-    heights = [0.35, 0.55, 0.25, 0.75, 0.5]
-    x = margin
-    for h in heights:
-        top_y = base_y - int((size - 2 * margin) * h)
-        draw.rectangle([x, top_y, x + bar_w, base_y], fill=(30, 136, 229, 255))
-        x += bar_w + gap
-    return img
 
 # --- Traducciones simples (ES/EN) ---
 LANG = {
@@ -235,29 +216,27 @@ def plot_section(df: pd.DataFrame):
 
 
 def main():
-    icon_img = _make_app_icon(96)
     st.set_page_config(
         page_title="Synapse - Asistente de Datos",
-        page_icon=icon_img,
         layout="wide"
     )
 
-    # Selector de idioma
-    with st.sidebar:
-        st.caption("")
-        current = st.session_state.get("lang", "es")
-        label = t("lang_label")
-        option_labels = {"es": t("es_label"), "en": t("en_label")}
-        lang_choice = st.selectbox(label, ["es", "en"], index=(0 if current=="es" else 1), format_func=lambda v: option_labels[v])
-        st.session_state["lang"] = lang_choice
-
-    # Título con icono a la izquierda
-    title_col_icon, title_col_text = st.columns([0.08, 0.92])
-    with title_col_icon:
-        st.image(icon_img, width=28)
-    with title_col_text:
+    # Encabezado con selector de idioma compacto a la derecha
+    header_left, header_right = st.columns([0.75, 0.25])
+    with header_left:
         st.markdown(f"<h1 style='margin-bottom:0;'>{t('title')}</h1>", unsafe_allow_html=True)
         st.markdown(f"<div style='color:#555;'>{t('subtitle')}</div>", unsafe_allow_html=True)
+    with header_right:
+        current = st.session_state.get("lang", "es")
+        default_lbl = "ES" if current == "es" else "EN"
+        choice_lbl = st.segmented_control(
+            t("lang_label"),
+            options=["ES", "EN"],
+            default=default_lbl,
+            label_visibility="collapsed",
+            key="lang_selector_top"
+        )
+        st.session_state["lang"] = "es" if choice_lbl == "ES" else "en"
 
     with st.sidebar:
         st.header(t("sidebar_load"))
